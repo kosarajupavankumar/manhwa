@@ -1,0 +1,52 @@
+{
+  "name": "webtoons-scraper",
+  "version": "1.0.0",
+  "description": "Download Webtoons episodes and images",
+  "main": "dist/index.js",
+  "scripts": {
+    "prebuild": "npm run lint && npm run format:check && npm run test",
+    "build": "tsc",
+    "pipeline": "npm run build && node dist/cli/pipeline.cli.js",
+    "start": "npm run build && node dist/cli/pipeline.cli.js",
+    "scrape": "npm run build && node dist/cli/scraper.cli.js",
+    "ocr": "npm run build && node dist/cli/ocr.cli.js",
+    "polish": "npm run build && node dist/cli/polish.cli.js",
+    "narrate": "npm run build && node dist/cli/narrate.cli.js",
+    "dev": "ts-node src/cli/pipeline.cli.ts",
+    "dev:scrape": "ts-node src/cli/scraper.cli.ts",
+    "dev:ocr": "ts-node src/cli/ocr.cli.ts",
+    "dev:polish": "ts-node src/cli/polish.cli.ts",
+    "dev:narrate": "ts-node src/cli/narrate.cli.ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"tests/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"*.ts\"",
+    "check": "npm run build"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.6",
+    "dotenv": "^17.3.1",
+    "form-data": "^4.0.5",
+    "playwright": "^1.50.0",
+    "sharp": "^0.33.5",
+    "tesseract.js": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.19.35",
+    "@types/sharp": "^0.31.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.2.0",
+    "prettier": "^3.8.1",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  }
+}
