@@ -88,6 +88,11 @@ function buildConfig(): AppConfig {
       optionalString('NARRATION_OUTPUT_DIR', './output/Shifting Tails/narration'),
     ),
     geminiRateLimitMs: optionalInt('GEMINI_RATE_LIMIT_MS', 4000),
+    ttsVoice: optionalString('TTS_VOICE', 'Samantha'),
+    ttsRate: optionalInt('TTS_RATE', 160),
+    ttsFormat: optionalString('TTS_FORMAT', 'm4a'),
+    ttsOutputDir: path.resolve(optionalString('TTS_OUTPUT_DIR', './output/Shifting Tails/audio')),
+    skipTts: optionalBool('SKIP_TTS', true),
     debug: optionalBool('DEBUG', false),
   };
 }

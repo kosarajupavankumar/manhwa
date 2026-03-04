@@ -39,6 +39,18 @@ export interface AppConfig {
   /** Milliseconds between Gemini API calls (rate-limit guard) */
   geminiRateLimitMs: number;
 
+  // ── TTS ─────────────────────────────────────────────────────────────────────
+  /** macOS `say` voice name */
+  ttsVoice: string;
+  /** Words-per-minute speaking rate */
+  ttsRate: number;
+  /** Output format: "m4a" or "aiff" */
+  ttsFormat: string;
+  /** Directory where audio files are saved */
+  ttsOutputDir: string;
+  /** When true, skip TTS step in pipeline */
+  skipTts: boolean;
+
   // ── General ───────────────────────────────────────────────────────────────
   /** Enable verbose debug logging */
   debug: boolean;

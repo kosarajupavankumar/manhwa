@@ -28,6 +28,14 @@
  *   --title NAME          Series title for the script       (default: "Shifting Tails")
  *   --skip-narrate        Skip narration script generation
  *
+ * TTS options:
+ *   --tts-output DIR   Where to write the audio file    (default: TTS_OUTPUT_DIR)
+ *   --voice NAME       macOS say voice name             (default: TTS_VOICE or Samantha)
+ *   --rate N           Speaking rate in wpm             (default: TTS_RATE or 160)
+ *   --format FORMAT    "m4a" or "aiff"                  (default: TTS_FORMAT or m4a)
+ *   --tts              Enable TTS step (overrides SKIP_TTS)
+ *   --skip-tts         Skip TTS step
+ *
  * Examples:
  *   ts-node src/cli/pipeline.cli.ts
  *   ts-node src/cli/pipeline.cli.ts "https://www.webtoons.com/en/romance/shifting-tails/list?title_no=8942"
@@ -36,11 +44,18 @@
 
 import path from 'path';
 import { config as envConfig } from '../config';
-import type { OcrOptions, PipelineOptions, PolishOptions, NarratorOptions } from '../types';
+import type {
+  OcrOptions,
+  PipelineOptions,
+  PolishOptions,
+  NarratorOptions,
+  TtsOptions,
+} from '../types';
 import { scrape } from '../core/scraper';
 import { runOcr } from '../core/ocr';
 import { runPolisher } from '../core/polisher';
 import { runNarrator } from '../core/narrator';
+import { runTts } from '../core/tts';
 
 // ─── CLI Parsing ─────────────────────────────────────────────────────────────
 
@@ -105,6 +120,11 @@ Examples:
   let narrateOutputDir = envConfig.narrationOutputDir;
   let seriesTitle = 'Shifting Tails';
   let skipNarrate = envConfig.skipNarrate;
+  let ttsOutputDir = envConfig.ttsOutputDir;
+  let ttsVoice = envConfig.ttsVoice;
+  let ttsRate = envConfig.ttsRate;
+  let ttsFormat = envConfig.ttsFormat as 'aiff' | 'm4a';
+  let skipTts = envConfig.skipTts;
 
   for (let i = argOffset; i < args.length; i++) {
     switch (args[i]) {
@@ -150,6 +170,24 @@ Examples:
       case '--skip-narrate':
         skipNarrate = true;
         break;
+      case '--tts':
+        skipTts = false;
+        break;
+      case '--skip-tts':
+        skipTts = true;
+        break;
+      case '--tts-output':
+        ttsOutputDir = path.resolve(args[++i]);
+        break;
+      case '--voice':
+        ttsVoice = args[++i];
+        break;
+      case '--rate':
+        ttsRate = parseInt(args[++i], 10);
+        break;
+      case '--format':
+        ttsFormat = args[++i] as 'aiff' | 'm4a';
+        break;
     }
   }
 
@@ -174,9 +212,16 @@ Examples:
       model: geminiModel,
       title: seriesTitle,
     },
+    tts: {
+      outputDir: ttsOutputDir,
+      voice: ttsVoice,
+      rate: ttsRate,
+      format: ttsFormat,
+    },
     skipOcr,
     skipPolish,
     skipNarrate,
+    skipTts,
   };
 }
 
@@ -240,7 +285,23 @@ async function run(): Promise<void> {
     ...opts.narrate,
     polishedDir: opts.polish.outputDir,
   };
-  await runNarrator(narrateOpts);
+  const narrateResult = await runNarrator(narrateOpts);
+
+  // ── Step 5: TTS (opt-in, macOS only) ─────────────────────────────────
+  if (opts.skipTts) {
+    console.log("\n⏭️  TTS skipped. Run 'npm run tts' or pass '--tts' to generate audio.\n");
+    return;
+  }
+
+  console.log(`\n${'\u2550'.repeat(60)}`);
+  console.log('  STEP 5 — TEXT-TO-SPEECH (macOS say)');
+  console.log('\u2550'.repeat(60));
+
+  const ttsOpts: TtsOptions = {
+    ...opts.tts,
+    scriptFile: narrateResult.outputFile,
+  };
+  await runTts(ttsOpts);
 }
 
 // ─── Entry point ─────────────────────────────────────────────────────────────
