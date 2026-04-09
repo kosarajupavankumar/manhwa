@@ -103,6 +103,26 @@ def main():
     print("\n--- Phase 3: AI Script Generation ---")
     script_output_path = f'assets/{series_name}/youtube_script_gemini_pro.md'
     final_script = polish_script(combined_text_path, script_output_path)
+    
+    # --- Phase 4: AI Video Generation ---
+    if final_script:
+        print("\n--- Phase 4: AI Video Generation ---")
+        from video_builder import build_youtube_video, build_traditional_video
+        
+        # Create YouTube video
+        youtube_video = build_youtube_video(final_script, f'assets/{series_name}/youtube_video.mp4')
+        
+        # Create YouTube Shorts (vertical format)
+        shorts_video = build_youtube_video(final_script, f'assets/{series_name}/youtube_shorts.mp4', is_shorts=True)
+        
+        # Fallback: Traditional scrolling video from images
+        if episode_data:
+            sample_episode = next(iter(episode_data.values()))
+            if sample_episode:
+                traditional_video = build_traditional_video(sample_episode, f'assets/{series_name}/traditional_video.mp4')
+    else:
+        print("\n--- Phase 4: AI Video Generation ---")
+        print("Skipping video generation - no script available")
                 
     print("\n" + "="*50)
     print(" EXTRACTION COMPLETE! ")
@@ -110,6 +130,10 @@ def main():
     print(f" Individual Episode Texts saved in: assets/{series_name}/text/<Episode Name>/")
     print(f" Master Combined Text: assets/{series_name}/{os.path.basename(combined_text_path)}")
     print(f" Gemini Pro YouTube Script: {final_script}")
+    if final_script:
+        print(f" YouTube Video: assets/{series_name}/youtube_video.mp4")
+        print(f" YouTube Shorts: assets/{series_name}/youtube_shorts.mp4")
+        print(f" Traditional Video: assets/{series_name}/traditional_video.mp4")
     print("="*50)
 
 if __name__ == "__main__":
