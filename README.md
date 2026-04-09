@@ -1,50 +1,165 @@
-# Manhwa Pipeline
+# Midnight Manhwa - Webtoon to YouTube Automation Pipeline
 
-A fully automated pipeline that scrapes Webtoons episodes, extracts text via OCR, polishes the raw output with Gemini AI, and generates viral YouTube narration scripts — all in a single `npm start`.
+A fully automated Python pipeline that scrapes Webtoon/Manhwa episodes, extracts text via OCR using Gemini AI and Tesseract, and generates engaging YouTube narration scripts.
 
 ```
-Scrape → OCR → Polish → Narrate
+Scrape → OCR → Script Generation
 ```
-
----
 
 ## Features
 
-- **Scraper** — Headless Playwright browser downloads every panel image from a Webtoons series, handling lazy-loading and retries automatically
-- **OCR** — Tesseract.js worker pool extracts dialogue and narration text from each image; Sharp preprocessing improves accuracy
-- **Polisher** — Gemini AI strips OCR noise and rescues real story text from garbled scanner output, with few-shot examples for precision
-- **Narrator** — Gemini AI rewrites the cleaned text as a viral YouTube recap script (450+ words per episode, ~3 min read time)
+- **Webtoon Scraper** — Downloads all episode images from Webtoon series automatically
+- **OCR Text Extraction** — Uses Google Gemini AI for high-quality text extraction from comic panels, with Tesseract OCR as fallback
+- **YouTube Script Generation** — Creates detailed, engaging narration scripts using AI for viral YouTube content
+- **Batch Processing** — Processes multiple episodes in series
+- **Flexible Configuration** — Environment-based configuration for API keys and settings
 
----
+## Requirements
+
+- Python 3.9+
+- Google AI API key (for Gemini OCR and script generation)
+- OpenAI API key (optional fallback for script generation)
+- Tesseract OCR (installed system-wide)
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/kosarajupavankumar/manhwa.git
+cd manhwa
+```
+
+2. Create virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Install Tesseract OCR:
+```bash
+# macOS
+brew install tesseract
+
+# Ubuntu/Debian
+sudo apt-get install tesseract-ocr
+
+# Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki
+```
+
+5. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your API keys:
+# GOOGLE_AI_API_KEY=your_gemini_api_key
+# OPENAI_API_KEY=your_openai_api_key (optional)
+```
+
+## Usage
+
+### Full Pipeline
+```bash
+python main.py "https://www.webtoons.com/en/graphic-novel/fence/list?title_no=9575"
+```
+
+### Skip Download (Process Existing Images)
+```bash
+python main.py --skip-download
+```
+
+### Limit Episodes
+```bash
+python main.py "https://www.webtoons.com/en/..." --limit 5
+```
+
+### Individual Components
+
+Extract text from images:
+```bash
+python ocr_extractor.py /path/to/images/folder
+```
+
+Generate script from text file:
+```bash
+python script_generator.py input_text.txt output_script.md
+```
 
 ## Project Structure
 
 ```
-src/
-├── cli/
-│   ├── pipeline.cli.ts     # Full pipeline (scrape → OCR → polish → narrate)
-│   ├── scraper.cli.ts      # Scrape only
-│   ├── ocr.cli.ts          # OCR only
-│   ├── polish.cli.ts       # Polish only
-│   └── narrate.cli.ts      # Narrate only
-├── core/
-│   ├── scraper/            # Playwright browser, downloader, URL utils
-│   ├── ocr/                # Tesseract worker pool, preprocessor, text cleaner
-│   ├── polisher/           # Gemini text polisher
-│   └── narrator/           # Gemini narration script generator
-├── types/                  # Shared TypeScript interfaces
-├── utils/                  # Concurrency helpers, filesystem utilities
-└── config.ts               # Typed config loader from .env
-
-output/
-└── <Series Name>/
-    ├── ocr/                # Raw Tesseract .txt files
-    ├── polished/           # Gemini-cleaned .txt files
-    └── narration/          # narration_script.txt
-
-downloads/
-└── <Series Name>/          # Downloaded panel images (per episode)
+├── main.py                 # Main pipeline orchestrator
+├── scraper.py              # Webtoon episode scraper
+├── ocr_extractor.py        # OCR text extraction (Gemini + Tesseract)
+├── script_generator.py     # YouTube script generation
+├── video_builder.py        # Video creation (future feature)
+├── webtoon_research.py     # Research utilities
+├── assets/                 # Downloaded content
+│   └── <Series Name>/
+│       ├── images/         # Episode images
+│       │   └── Episode X/
+│       └── text/           # Extracted text
+│           └── Episode X/
+│               └── Episode X_extracted.txt
+└── all_episodes_combined_text.txt  # Combined text for script generation
 ```
+
+## Output Structure
+
+After running the pipeline, you'll find:
+
+- `assets/<Series Name>/images/` — Downloaded episode images
+- `assets/<Series Name>/text/` — Individual episode extracted text
+- `assets/<Series Name>/all_episodes_combined_text.txt` — Combined text from all episodes
+- `assets/<Series Name>/youtube_script_gemini_pro.md` — Generated YouTube script (if API quota allows)
+
+## Configuration
+
+The pipeline uses the following environment variables:
+
+- `GOOGLE_AI_API_KEY` — Required for Gemini OCR and script generation
+- `OPENAI_API_KEY` — Optional fallback for script generation
+- `WEBTOON_LIMIT` — Default episode limit (optional)
+
+## API Quotas and Costs
+
+- **Gemini API**: Free tier has limits (5 requests/minute). Upgrade to paid tier for higher limits.
+- **OpenAI API**: Requires paid credits.
+- **Fallback**: Tesseract OCR works without API keys for text extraction.
+
+## Troubleshooting
+
+### Gemini API Errors
+- Check your API key in `.env`
+- Free tier quota exceeded: Wait or upgrade billing
+- Model not found: Ensure you're using current Gemini models
+
+### Tesseract Issues
+- Install Tesseract system-wide
+- Check language packs: `tesseract --list-langs`
+
+### Webtoon Scraping
+- Some series may have anti-bot protection
+- Use `--limit` to process fewer episodes initially
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Disclaimer
+
+This tool is for educational and personal use. Respect webtoon copyrights and platform terms of service.
 
 ---
 
