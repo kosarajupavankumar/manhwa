@@ -11,3 +11,15 @@ __pycache__/
 dist/
 build/
 assets/
+downloads/
+output/
+*.traineddata
+.DS_Store
+*.log
+
+# Environment — never commit real secrets
+.env
+.env.local
+.env.*.local
+# .env.example is safe and SHOULD be committed
+>>>>>>> 449f9928e3f637e7417659ab570c88a6bfa62b3a
