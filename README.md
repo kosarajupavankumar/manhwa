@@ -1,10 +1,22 @@
 # Midnight Manhwa - Webtoon to YouTube Automation Pipeline
 
-A fully automated Python pipeline that scrapes Webtoon/Manhwa episodes, extracts text via OCR using Gemini AI and Tesseract, and generates engaging YouTube narration scripts.
+A fully automated Python pipeline that scrapes Webtoon/Manhwa episodes, extracts text via OCR using Gemini AI and Tesseract, generates YouTube scripts, and creates AI-powered videos with synchronized audio for both YouTube and Shorts.
 
 ```
-Scrape → OCR → Script Generation
+Scrape → OCR → Script Generation → AI Video Creation
 ```
+
+## Features
+
+- **Webtoon Scraper** — Downloads all episode images from Webtoon series automatically
+- **OCR Text Extraction** — Uses Google Gemini AI for high-quality text extraction from comic panels, with Tesseract OCR as fallback
+- **YouTube Script Generation** — Creates detailed, engaging narration scripts using AI for viral YouTube content
+- **AI Video Generation** — Creates cinematic videos using AI services (RunwayML, etc.) with scene-based storytelling
+- **Text-to-Speech** — Generates synchronized voice narration using OpenAI TTS or ElevenLabs
+- **YouTube & Shorts Support** — Creates both horizontal YouTube videos (16:9) and vertical Shorts (9:16)
+- **Traditional Video Fallback** — Creates scrolling videos from webtoon images when AI services are unavailable
+- **Batch Processing** — Processes multiple episodes in series
+- **Flexible Configuration** — Environment-based configuration for API keys and settings
 
 ## Features
 
@@ -18,8 +30,11 @@ Scrape → OCR → Script Generation
 
 - Python 3.9+
 - Google AI API key (for Gemini OCR and script generation)
-- OpenAI API key (optional fallback for script generation)
+- OpenAI API key (optional, used as fallback for script generation and TTS)
+- RunwayML API key (optional, for AI video generation)
+- ElevenLabs API key (optional, for high-quality TTS)
 - Tesseract OCR (installed system-wide)
+- FFmpeg (for video processing)
 
 ## Installation
 
@@ -88,6 +103,20 @@ Generate script from text file:
 python script_generator.py input_text.txt output_script.md
 ```
 
+Create YouTube video from script:
+```bash
+python video_builder.py assets/Series/youtube_script_gemini_pro.md assets/Series/youtube_video.mp4
+```
+
+Create YouTube Shorts:
+```bash
+python video_builder.py assets/Series/youtube_script_gemini_pro.md assets/Series/shorts.mp4 --shorts
+```
+
+Create traditional scrolling video:
+```bash
+python video_builder.py /path/to/image/folder assets/traditional_video.mp4
+
 ## Project Structure
 
 ```
@@ -114,21 +143,41 @@ After running the pipeline, you'll find:
 - `assets/<Series Name>/images/` — Downloaded episode images
 - `assets/<Series Name>/text/` — Individual episode extracted text
 - `assets/<Series Name>/all_episodes_combined_text.txt` — Combined text from all episodes
-- `assets/<Series Name>/youtube_script_gemini_pro.md` — Generated YouTube script (if API quota allows)
+- `assets/<Series Name>/youtube_script_gemini_pro.md` — Generated YouTube script
+- `assets/<Series Name>/youtube_video.mp4` — AI-generated YouTube video (16:9)
+- `assets/<Series Name>/youtube_shorts.mp4` — AI-generated YouTube Shorts (9:16)
+- `assets/<Series Name>/traditional_video.mp4` — Traditional scrolling video from images
 
 ## Configuration
 
 The pipeline uses the following environment variables:
 
 - `GOOGLE_AI_API_KEY` — Required for Gemini OCR and script generation
-- `OPENAI_API_KEY` — Optional fallback for script generation
+- `OPENAI_API_KEY` — Optional fallback for script generation and TTS
+- `RUNWAYML_API_KEY` — Optional for AI video generation (RunwayML Gen-2)
+- `ELEVENLABS_API_KEY` — Optional for high-quality TTS
 - `WEBTOON_LIMIT` — Default episode limit (optional)
 
-## API Quotas and Costs
+## AI Services and Costs
 
-- **Gemini API**: Free tier has limits (5 requests/minute). Upgrade to paid tier for higher limits.
-- **OpenAI API**: Requires paid credits.
-- **Fallback**: Tesseract OCR works without API keys for text extraction.
+### Required Services
+- **Gemini API**: Free tier available, upgrade for higher limits
+- **Tesseract OCR**: Free, no API key needed
+
+### Optional AI Services
+- **OpenAI API**: Paid credits required for script generation and TTS
+- **RunwayML**: Paid credits for AI video generation
+- **ElevenLabs**: Paid credits for premium TTS voices
+
+### Video Generation Options
+1. **AI-Generated Videos**: Uses RunwayML to create cinematic scenes from script descriptions
+2. **Text-Based Videos**: Fallback with scene descriptions and text overlays
+3. **Traditional Videos**: Scrolling webtoon panels (no AI required)
+
+### Audio Options
+1. **OpenAI TTS**: High-quality voice synthesis
+2. **ElevenLabs**: Premium voice cloning and emotions
+3. **No Audio**: Silent videos (fallback)
 
 ## Troubleshooting
 
