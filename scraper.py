@@ -54,8 +54,8 @@ def get_chapter_urls(series_url, limit=None):
             series_name = title_elem.get('content', 'Unknown_Series').split(' - ')[0].replace('/', '-').replace('\\', '-').replace(' ', '_')
 
     chapters = []
-    
-    # Try finding the listUl which contains episodes
+
+    # First, get episodes from the initial page load
     list_ul = soup.find('ul', id='_listUl')
     if list_ul:
         for li in list_ul.find_all('li'):
@@ -64,8 +64,60 @@ def get_chapter_urls(series_url, limit=None):
             if link and 'href' in link.attrs and subj:
                 ep_name = subj.text.strip().replace('/', '-').replace('\\', '-')
                 chapters.append((ep_name, link['href']))
-                if limit and len(chapters) >= limit:
-                    break
+
+    # Try to load more episodes via pagination or "load more"
+    # Webtoons uses AJAX to load additional episodes
+    import re
+    title_match = re.search(r'title_no=(\d+)', series_url)
+    if title_match:
+        title_no = title_match.group(1)
+        page = 2  # Start from page 2 since page 1 is already loaded
+
+        while True:
+            # Try different pagination approaches
+            paginated_urls = [
+                f'{series_url}&page={page}',  # Add page parameter
+                f'https://www.webtoons.com/en/graphic-novel/fence/list?title_no={title_no}&page={page}',  # Direct page URL
+            ]
+
+            found_new_episodes = False
+            for pag_url in paginated_urls:
+                try:
+                    pag_response = requests.get(pag_url, headers=HEADERS, timeout=10)
+                    if pag_response.status_code == 200:
+                        pag_soup = BeautifulSoup(pag_response.text, 'html.parser')
+                        pag_list_ul = pag_soup.find('ul', id='_listUl')
+                        if pag_list_ul:
+                            page_episodes = []
+                            for li in pag_list_ul.find_all('li'):
+                                link = li.find('a')
+                                subj = li.find('span', class_='subj')
+                                if link and 'href' in link.attrs and subj:
+                                    ep_name = subj.text.strip().replace('/', '-').replace('\\', '-')
+                                    ep_url = link['href']
+                                    # Check if we already have this episode
+                                    if not any(ep_url == existing_url for _, existing_url in chapters):
+                                        page_episodes.append((ep_name, ep_url))
+                                        found_new_episodes = True
+
+                            chapters.extend(page_episodes)
+                            if found_new_episodes:
+                                break  # Found episodes on this URL format
+                except:
+                    continue
+
+            if not found_new_episodes:
+                break  # No more episodes found
+
+            page += 1
+            if page > 50:  # Safety limit
+                break
+
+            time.sleep(0.5)  # Be respectful
+
+    # Apply limit if specified
+    if limit and len(chapters) > limit:
+        chapters = chapters[:limit]
 
     # If the provided URL is already a viewer page, try to find its title
     if not chapters and 'viewer' in series_url:
